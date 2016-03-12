@@ -7,6 +7,7 @@
 
 > import Graphics.GPipe
 > import qualified "GPipe-GLFW" Graphics.GPipe.Context.GLFW as GLFW
+> import qualified "GPipe-GLFW" Graphics.GPipe.Context.GLFW.Input as Input
 > import qualified "JuicyPixels" Codec.Picture as Juicy
 > import qualified "JuicyPixels" Codec.Picture.Types as Juicy
 > import "linear" Linear
@@ -85,8 +86,23 @@
 >   swapContextBuffers
 
 >   closeRequested <- GLFW.windowShouldClose
->   unless closeRequested $
->     loop shader makePrimitives uniform ((angle + 0.005) `mod''` (2*pi))
+>   unless closeRequested $ do
+>     up <- isPressed Input.Key'Up
+>     down <- isPressed Input.Key'Down
+>     let direction = (if up then 1.0 else 0.0)
+>                        + (if down then -1.0 else 0.0)
+>         angleDelta = direction * 0.05 + 0.005
+>     loop shader makePrimitives uniform ((angle + angleDelta) `mod''` (2*pi))
+
+A key can be pressed, released or repeating. The latter is only
+interesting for text editing, so we want to forget about that and
+return boolean.
+
+> isPressed key = isPressed' `fmap` Input.getKey key where
+>   isPressed' Input.KeyState'Released = False
+>   isPressed' Input.KeyState'Pressed = True
+>   isPressed' Input.KeyState'Repeating = True
+
 
 > getJuicyPixel xs _x _y pix =
 >   let Juicy.PixelRGB8 r g b = Juicy.convertPixel pix in V3 r g b : xs
