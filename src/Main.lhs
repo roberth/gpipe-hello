@@ -8,11 +8,9 @@
 > import Graphics.GPipe
 > import qualified "GPipe-GLFW" Graphics.GPipe.Context.GLFW as GLFW
 > import qualified "GPipe-GLFW" Graphics.GPipe.Context.GLFW.Input as Input
-> import qualified "JuicyPixels" Codec.Picture as Juicy
-> import qualified "JuicyPixels" Codec.Picture.Types as Juicy
 > import "linear" Linear
-> import Paths_gpipe_hello (getDataDir)
-> import System.FilePath ((</>))
+
+> import qualified Textures
 
 > main =
 >   runContextT (GLFW.newContext' [] (GLFW.WindowConf 1280 720 "GPipe Hello")) (ContextFormatColorDepth SRGB8 Depth16) $ do
@@ -33,14 +31,7 @@
 >           return $ toPrimitiveArrayInstanced TriangleStrip (,) pArr sideInstances
 
 >     -- Load image into texture
->     dataDir <- liftIO $ getDataDir
->     let filename = dataDir </> "nixos-logo.jpg"
->     liftIO $ putStrLn $ "Filename is " ++ filename
->     Right (Juicy.ImageYCbCr8 image) <- liftIO $ Juicy.readImage filename
->     let size = V2 (Juicy.imageWidth image) (Juicy.imageHeight (image))
->     tex <- newTexture2D SRGB8 size maxBound -- JPG converts to SRGB
->     writeTexture2D tex 0 0 size $ Juicy.pixelFold getJuicyPixel [] image
->     generateTexture2DMipmap tex
+>     tex <- Textures.load "nixos-logo.jpg"
 
 >     -- Create a buffer for the uniform values
 >     uniform :: Buffer os (Uniform (V4 (B4 Float), V3 (B3 Float))) <- newBuffer 1
@@ -102,10 +93,6 @@ return boolean.
 >   isPressed' Input.KeyState'Released = False
 >   isPressed' Input.KeyState'Pressed = True
 >   isPressed' Input.KeyState'Repeating = True
-
-
-> getJuicyPixel xs _x _y pix =
->   let Juicy.PixelRGB8 r g b = Juicy.convertPixel pix in V3 r g b : xs
 
 > getZ (V4 _ _ z _) = z -- Some day I'll learn to use lenses instead...
 
