@@ -1,0 +1,8 @@
+
+# cabal
+dist/
+
+# nix
+result
+result-*
+
